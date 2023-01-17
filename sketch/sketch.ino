@@ -27,25 +27,41 @@ static void notifyCallback(
     Serial.println(length);
     Serial.print("data: ");*/
     //Serial.println((char*)pData);
-    if(pData[0] == 0x00 || pData[0] == 0x01){
+    if(pData[0] == 0x00 || pData[0] == 0x02){
       for (int i = 0; i < length; i++){
         if(i == 0){
           Serial.print(pData[i], DEC);
           Serial.print(" ");
         }
-        else if(i == length - 1){
+        else if(i >= 7){
           Serial.print(pData[i], DEC);
           Serial.print(" ");
         }
         else if(i%2 == 1){
-          Serial.print(pData[i]*0xff + pData[i+1], DEC);
+          Serial.print(pData[i]*0x100 + pData[i+1], DEC);
+          Serial.print(" ");
+        }
+      }
+    }
+    else if(pData[0] == 0x01){
+      for (int i = 0; i < length; i++){
+        if(i == 0){
+          Serial.print(pData[i], DEC);
+          Serial.print(" ");
+        }
+        else if(i == length - 1 &&  i%2 != 0){
+          Serial.print(pData[i], DEC);
+          Serial.print(" ");
+        }
+        else if(i%2 == 1){
+          Serial.print(pData[i]*0x100 + pData[i+1], DEC);
           Serial.print(" ");
         }
       }
     }
     else{
       for (int i = 0; i < length; i++){
-        Serial.print(pData[i], HEX);
+        Serial.print(pData[i], DEC);
         Serial.print(" ");
       }
     }
