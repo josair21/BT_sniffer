@@ -1,3 +1,6 @@
+#include <U8g2lib.h> 
+#include "functions.h"
+U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* clock=*/ 22, /* data=*/ 21);   // ESP32 Thing, HW I2C with pin remapping
 static const uint8_t logo_original[] = {
   B00000000,B00000000,B00001111,B11110000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,
   B00000000,B00000000,B00111111,B11111100,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,
@@ -64,6 +67,9 @@ static const uint8_t logo_original[] = {
   B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,
   B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000
 };
+void begin_screen(){
+  u8g2.begin();
+}
 void logo_screen(){
   u8g2.firstPage();
   do {
@@ -73,15 +79,72 @@ void logo_screen(){
 void search_screen(){
   u8g2.firstPage();
   do {
-    u8g2.drawBitmap(0, 0, 128/8, 64, logo_original);
+    u8g2.setFont(u8g2_font_open_iconic_check_8x_t);
+    u8g2.drawStr(64, 64, "A");
+    u8g2.setFont(u8g2_font_crox5tb_tr);
+    u8g2.drawStr(0, 16, "Press:");
+    u8g2.drawStr(0, 38, "to");
+    u8g2.drawStr(0, 60, "Scan");
   } while ( u8g2.nextPage() );
 }
-found_screen(){
+void found_screen(int a, int b, int c){
+  u8g2.firstPage();
+  do {
+    if(b == 255){
+      if(a%2 == 1){
+        u8g2.setFont(u8g2_font_open_iconic_embedded_2x_t);
+        u8g2.drawStr(128-16, 16, "J");
+      }
+      if(a%4 == 0){
+        u8g2.setFont(u8g2_font_logisoso16_tr);
+        u8g2.drawStr(0, 16, "Search");
+      }
+      if(a%4 == 1){
+        u8g2.setFont(u8g2_font_logisoso16_tr);
+        u8g2.drawStr(0, 16, "Searchi");
+      }
+      if(a%4 == 2){
+        u8g2.setFont(u8g2_font_logisoso16_tr);
+        u8g2.drawStr(0, 16, "Searchin");
+      }
+      if(a%4 == 3){
+        u8g2.setFont(u8g2_font_logisoso16_tr);
+        u8g2.drawStr(0, 16, "Searching");
+      }
+    }
+    else if(b == 0){
+      u8g2.setFont(u8g2_font_open_iconic_www_8x_t);
+      u8g2.drawStr(64, 64, "J");
+      u8g2.setFont(u8g2_font_crox5tb_tr);
+      u8g2.drawStr(0, 16, "Device");
+      u8g2.drawStr(0, 38, "no");
+      u8g2.drawStr(0, 60, "found");
+    }
+    else{
+      char aux[20];
+      char aux2[20];  
+      u8g2.setFont(u8g2_font_open_iconic_thing_2x_t);
+      u8g2.drawStr(128-16, 16, "R");
+      u8g2.setFont(u8g2_font_logisoso16_tr);
+      u8g2.drawStr(0, 16, "Devices:");
+      for(int i=0; i<b; i++){
+        devices[i].toCharArray(aux2, 20);
+        u8g2.setFont(u8g2_font_7x14_tr);
+        sprintf(aux, "%d. %s", i+1, aux2);
+        Serial.println(aux2);
+        u8g2.drawStr(20,16+12*(i+1),aux);
+      }
+      if(c != 0){
+        //u8g2.setFont(u8x8_font_open_iconic_arrow_1x1);
+        u8g2.setFont(u8g2_font_7x14_tr);
+        u8g2.drawStr(10, 12+12*(c), "C");
+      }
+    }
+  } while ( u8g2.nextPage() );
+}
+void download_screen(){
   
 }
-download_screen(){
-  
-}
-done_screen(){
+void done_screen(){
   
 }
