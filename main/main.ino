@@ -54,17 +54,53 @@ void loop() {
         place++;
         lastMillis = millis();
         if(place > iDevice) place = 0;
-        Serial.println(place);
         found_screen(0, iDevice, place);
       }
-      if((keyPressed == enter && place == 0) || millis() - lastMillis >= 20000){
+      if((keyPressed == enter && place == 0) || millis() - lastMillis >= 30000){
         estado = 1;
         subEstado = 0;
+        place = 0;
+      }
+      else if(keyPressed == enter && place != 0){
+        deviceToConnect = devices[place-1];
+        place = 0;
+        bool b = false;
+        for(int i=0; i<10; i++){
+          download_screen(0, i);
+          b = connect_ble(i);
+          if(b){
+            download_screen(1, 255);
+            delay(5000);
+            estado = 3;
+            subEstado = 1;
+            break;
+          }
+        }
+        if(b == false){
+          download_screen(2, 255);
+          delay(5000);
+          estado = 1;
+          subEstado = 0;
+        }
       }
     }
   }
   else if(estado == 3){
-    
+    if(subEstado == 1){
+      download_ble();
+      subEstado = 0;
+    }
+    if(isDone){
+      subEstado = 2;
+      isDone = false;
+    }
+    if(subEstado == 2){
+      done_screen();
+      subEstado = 0;
+      delay(3000);
+      disconnect_ble();
+      estado = 1;
+    }
   }
 }
 

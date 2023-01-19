@@ -136,15 +136,53 @@ void found_screen(int a, int b, int c){
       }
       if(c != 0){
         //u8g2.setFont(u8x8_font_open_iconic_arrow_1x1);
-        u8g2.setFont(u8g2_font_7x14_tr);
-        u8g2.drawStr(10, 12+12*(c), "C");
+        u8g2.setFont(u8g2_font_open_iconic_arrow_2x_t);
+        u8g2.drawStr(0, 19+12*(c), "B");
       }
     }
   } while ( u8g2.nextPage() );
 }
-void download_screen(){
+void download_screen(int a, int b){
+  u8g2.firstPage();
+  do {
+    if(a == 0){
+      u8g2.setFont(u8g2_font_open_iconic_www_8x_t);
+      u8g2.drawStr(64, 64, "Q");
+      u8g2.setFont(u8g2_font_logisoso16_tr);
+      if(b%3 == 0 || b%3 == 2) u8g2.drawStr(0, 16, "Con....");
+      if(b%3 == 1 || b%3 == 0) u8g2.drawStr(0, 40, "....nec");
+      if(b%3 == 2 || b%3 == 1) u8g2.drawStr(3, 60, "ting...");
+    }
+    if(a == 1){
+      u8g2.setFont(u8g2_font_open_iconic_www_8x_t);
+      u8g2.drawStr(64, 64, "L");
+      u8g2.setFont(u8g2_font_logisoso16_tr);
+      u8g2.drawStr(0, 16, "Gettin");
+      u8g2.drawStr(0, 32, "  data");
+      u8g2.setFont(u8g2_font_luIS14_tr);
+      u8g2.drawStr(3, 48, "Please");
+      u8g2.drawStr(0, 64, " wait");
+    }
+    if(a == 2){
+      u8g2.setFont(u8g2_font_open_iconic_check_8x_t);
+      u8g2.drawStr(64, 64, "B");
+      u8g2.setFont(u8g2_font_logisoso16_tr);
+      u8g2.drawStr(0, 16, "Link");
+      u8g2.drawStr(0, 32, "  error");
+      u8g2.setFont(u8g2_font_luIS14_tr);
+      u8g2.drawStr(3, 48, "Try");
+      u8g2.drawStr(0, 64, "again");
+    }
+  } while ( u8g2.nextPage() );
   
 }
 void done_screen(){
-  
+  u8g2.firstPage();
+  do {
+    u8g2.setFont(u8g2_font_open_iconic_check_8x_t);
+    u8g2.drawStr(64, 64, "C");
+    u8g2.setFont(u8g2_font_crox5tb_tr);
+    u8g2.drawStr(0, 40, "ALL");
+    u8g2.drawStr(0, 64, "DONE");
+  } while ( u8g2.nextPage() );
 }
