@@ -4,15 +4,16 @@
 #include "functions.h"
 #include <SPI.h>
 #include <SD.h>
-File myFile;
+File myFile, myFile2, myFile3;
 char Aux[999] = " ";
 const int CS = 5;
-int dia, mes, ano, hora, minuto;
+int dia=2000, mes=01, ano=01, hora=00, minuto=00;
 int hora_intervalo, minuto_intervalo;
 float humedad, temperatura;
 String devices[] = {" ", " ", " ", " ", " "};
 String deviceToConnect = " ";
 int iDevice = 0;
+char fileName[50] = " ";
 bool isDuplicated = false, isDone = false;
 bool isConnected = false, isFound = false;
 BLEAdvertisedDevice* myDevice;
@@ -37,7 +38,9 @@ static void notifyCallback(
       minuto = pData[10];
       humedad = (pData[1]*0x100+pData[2])/10.0;
       temperatura = (pData[3]*0x100+pData[4])/10.0;
-      sprintf(Aux,"%02d-%02d-%02d %02d:%02d,%.1f,%.1f", dia, mes, ano, hora, minuto, humedad, temperatura);
+      sprintf(Aux,"'%02d-%02d-%02d %02d:%02d,%.1f,%.1f\n", dia, mes, ano, hora, minuto, humedad, temperatura);
+      Serial.print(Aux);
+      myFile.print(Aux);
     }
     else if(pData[0] == 0x01){
       for(int i=0; i<(int)((length-1)/4); i++){
@@ -50,21 +53,33 @@ static void notifyCallback(
             hora = hora - hora_intervalo + 24;
             dia--; 
           }
-          
-          dia = pData[8];
-          mes = pData[7];
-          ano = pData[5]*0x100+pData[6];
-          hora = pData[9];
-          minuto = pData[10];
-          humedad = (pData[1]*0x100+pData[2])/10.0;
-          temperatura = (pData[3]*0x100+pData[4])/10.0;
-          sprintf(Aux," %02d-%02d-%02d %02d:%02d,%.1f,%.1f", dia, mes, ano, hora, minuto, humedad, temperatura);
-        }
+          else hora = hora - hora_intervalo;
+          if(dia <= 0){
+            mes--;
+            if(mes <= 0){
+              mes = 12;
+              ano--;
+            }
+            if(mes == 1 || mes == 3 || mes == 5 || mes == 7 || mes == 8 || mes == 10 || mes == 12){
+              dia = 31;
+            }
+            else if(mes == 2){
+              if(ano%4 == 0) dia = 29;
+              else dia = 28;
+            }
+            else dia = 30;
+          }
+          humedad = (pData[3*i+i+1]*0x100+pData[3*i+i+2])/10.0;
+          temperatura = (pData[3*i+i+3]*0x100+pData[3*i+i+4])/10.0;
+          sprintf(Aux,"'%02d-%02d-%02d %02d:%02d,%.1f,%.1f\n", dia, mes, ano, hora, minuto, humedad, temperatura);
+          Serial.print(Aux);
+          myFile.print(Aux);
       }
     }
     else if(pData[0] == 0x04 && pData[1] == 0x00){
       isDone = true;
-      }
+      sprintf(fileName,"/%s %02d%02d%02d-%02d%02d.csv",deviceToConnect, ano, mes, dia, hora, minuto);
+    }
     
     /*if(pData[0] == 0x00 || pData[0] == 0x02){
       for (int i = 0; i < length; i++){
@@ -144,21 +159,23 @@ class MyClientCallback : public BLEClientCallbacks {
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
   void onResult(BLEAdvertisedDevice advertisedDevice) {  
     devices[iDevice] = advertisedDevice.getName().c_str();
-    if(deviceToConnect == devices[iDevice] && deviceToConnect != " "){
-      pBLEScan->stop();
+    if(iDevice != 0 && deviceToConnect == devices[iDevice] && deviceToConnect != " "){
+      //pBLEScan->stop();
       myDevice = new BLEAdvertisedDevice(advertisedDevice);
       isFound = true;
     }
-    for(int i=0; i<5; i++){
-      if((devices[iDevice] == devices [i] && iDevice != i) || devices[iDevice] == "" || devices[iDevice] == " "){
-        isDuplicated = true;
-        devices[iDevice] = " ";
-        break;
+    else{
+      for(int i=0; i<iDevice+1; i++){
+        if((devices[iDevice] == devices [i] && iDevice != i) || devices[iDevice] == "" || devices[iDevice] == " "){
+          isDuplicated = true;
+          devices[iDevice] = " ";
+          break;
+        }
       }
+      if(isDuplicated == false) iDevice++;
+      if(iDevice >= 5 ) iDevice = 4;
+      isDuplicated = false;
     }
-    if(isDuplicated == false) iDevice++;
-    if(iDevice >= 5 ) iDevice = 0;
-    isDuplicated = false;
     
   }
 };  
@@ -166,21 +183,27 @@ void begin_ble(){
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  pBLEScan->setInterval(399);
-  pBLEScan->setWindow(299);
+  pBLEScan->setInterval(499);
+  pBLEScan->setWindow(249);
   pBLEScan->setActiveScan(true);
 }
                                // MyAdvertisedDeviceCallbacks
 void clear_ble(){
   for(int i=0; i<5; i++) devices[i] = " ";
   iDevice = 0;
+  dia=2000; mes=01; ano=01; hora=00; minuto=00;
+  deviceToConnect = " ";
+  sprintf(fileName, " ");
+  sprintf(Aux, " ");
+  isDuplicated = false; isDone = false;
+  isConnected = false; isFound = false;
 }
 void search_ble(){
   pBLEScan->start(1, false);
 }
 ///////////////////////////////
 bool connect_ble(int a) {
-  if(a > 3 && deviceToConnect[0] == 'C' && deviceToConnect[1] == 'C'){
+  if(a > 1 && deviceToConnect[0] == 'C' && deviceToConnect[1] == 'C'){
     pBLEScan->start(1, false);
     if(isFound){
       pClient = BLEDevice::createClient();
@@ -255,4 +278,19 @@ bool download_ble(){
 void disconnect_ble(){
   myFile.close();
   pClient->disconnect();  
+}
+bool copy_files(){
+  myFile3 = SD.open("/test.csv", FILE_READ);
+  myFile2 = SD.open(fileName, FILE_WRITE);
+  if(myFile3 && myFile2){
+    while (myFile3.available()) {
+      char xx = myFile3.read();
+      myFile2.print(xx);
+    }
+    myFile3.close();
+    myFile2.close();
+    return true;
+  }
+  return false;
+  
 }

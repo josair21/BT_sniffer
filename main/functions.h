@@ -10,4 +10,5 @@ void clear_ble();
 bool connect_ble(int a);
 bool download_ble();
 void disconnect_ble();
+bool copy_files();
 #endif

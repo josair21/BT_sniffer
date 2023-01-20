@@ -17,7 +17,7 @@ void loop() {
   keyPressed = get_input();
   if(estado == 0){
     logo_screen();
-    delay(5000);
+    delay(4000);
     estado = 1;
   }
   else if(estado == 1){
@@ -27,7 +27,7 @@ void loop() {
   }
   else if(estado == 2){
     if(subEstado == 0){
-      for(int i=0; i<12; i++){
+      for(int i=0; i<6; i++){
         found_screen(i, 255, 0);
         search_ble();
       }
@@ -65,20 +65,23 @@ void loop() {
         deviceToConnect = devices[place-1];
         place = 0;
         bool b = false;
-        for(int i=0; i<10; i++){
+        for(int i=0; i<4; i++){
           download_screen(0, i);
           b = connect_ble(i);
           if(b){
             download_screen(1, 255);
-            delay(5000);
+            delay(1000);
             estado = 3;
             subEstado = 1;
             break;
           }
         }
         if(b == false){
-          download_screen(2, 255);
-          delay(5000);
+          download_screen(2, 255); //Link Error
+          lastMillis = millis();
+          while(millis() - lastMillis < 4000){
+            if(get_input() == 1) break;
+          }
           estado = 1;
           subEstado = 0;
         }
@@ -89,7 +92,10 @@ void loop() {
     if(subEstado == 1){
       if(!download_ble()){
         download_screen(3, 255);
-        delay(5000);
+        lastMillis = millis();
+        while(millis() - lastMillis < 4000){
+            if(get_input() == 1) break;
+        }
         disconnect_ble();
         subEstado = 0;
         estado = 1;
@@ -101,11 +107,20 @@ void loop() {
       isDone = false;
     }
     if(subEstado == 2){
-      done_screen();
-      subEstado = 0;
-      delay(3000);
       disconnect_ble();
+      delay(100);
+      if(copy_files()){
+        done_screen();
+      }
+      else{
+        download_screen(3, 255);
+      }
+      subEstado = 0;
       estado = 1;
+      lastMillis = millis();
+      while(millis() - lastMillis < 4000){
+            if(get_input() == 1) break;
+      }
     }
   }
 }
