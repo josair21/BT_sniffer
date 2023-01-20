@@ -87,7 +87,13 @@ void loop() {
   }
   else if(estado == 3){
     if(subEstado == 1){
-      download_ble();
+      if(!download_ble()){
+        download_screen(3, 255);
+        delay(5000);
+        disconnect_ble();
+        subEstado = 0;
+        estado = 1;
+      }
       subEstado = 0;
     }
     if(isDone){

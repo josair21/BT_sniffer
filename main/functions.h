@@ -8,6 +8,6 @@ void begin_ble();
 void search_ble();
 void clear_ble();
 bool connect_ble(int a);
-void download_ble();
+bool download_ble();
 void disconnect_ble();
 #endif
