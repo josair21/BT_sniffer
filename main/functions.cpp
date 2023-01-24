@@ -13,7 +13,7 @@ float humedad, temperatura;
 String devices[] = {" ", " ", " ", " ", " "};
 String deviceToConnect = " ";
 int iDevice = 0;
-char fileName[50] = " ";
+char fileName[999] = " ";
 bool isDuplicated = false, isDone = false;
 bool isConnected = false, isFound = false;
 BLEAdvertisedDevice* myDevice;
@@ -72,13 +72,17 @@ static void notifyCallback(
           humedad = (pData[3*i+i+1]*0x100+pData[3*i+i+2])/10.0;
           temperatura = (pData[3*i+i+3]*0x100+pData[3*i+i+4])/10.0;
           sprintf(Aux,"'%02d-%02d-%02d %02d:%02d,%.1f,%.1f\n", dia, mes, ano, hora, minuto, humedad, temperatura);
-          Serial.print(Aux);
+          //Serial.print(Aux);
           myFile.print(Aux);
       }
     }
     else if(pData[0] == 0x04 && pData[1] == 0x00){
       isDone = true;
-      sprintf(fileName,"/%s %02d%02d%02d-%02d%02d.csv",deviceToConnect, ano, mes, dia, hora, minuto);
+      char Auxx[40];
+      deviceToConnect.toCharArray(Auxx, deviceToConnect.length()+1);
+      Serial.println(Auxx); 
+      sprintf(fileName,"/%s %02d%02d%02d-%02d%02d.csv",Auxx, ano, mes, dia, hora, minuto);
+      
     }
     
     /*if(pData[0] == 0x00 || pData[0] == 0x02){
